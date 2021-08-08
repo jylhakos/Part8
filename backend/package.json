@@ -1,0 +1,32 @@
+{
+  "name": "library-backend",
+  "version": "1.0.0",
+  "description": "React, GraphQL, HTTP, Apollo, Mongoose, Node.js",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jylhakos/Part8.git"
+  },
+  "keywords": [
+    "JavaScript",
+    "React",
+    "GraphQL",
+    "HTTP",
+    "Apollo",
+    "Mongoose",
+    "MongoDB",
+    "Node.js",
+    "npm",
+    "HTML"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jylhakos/Part8/issues"
+  },
+  "homepage": "https://github.com/jylhakos/Part8#readme"
+}
