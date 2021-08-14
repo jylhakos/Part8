@@ -92,6 +92,7 @@ let books = [
   },
 ]
 
+// 8.1, 8.2
 const typeDefs = gql`
   type Book {
     title: String!
@@ -119,11 +120,12 @@ const resolvers = {
   }
 }
 
-// PLAYGROUND
 //query {
-//  allBooks {
-//    title
+//  allBooks { 
+//    title 
 //    author
+//    published 
+//    genres
 //  }
 //}
 
