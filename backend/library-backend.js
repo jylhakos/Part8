@@ -1,6 +1,18 @@
 // $ npm init
 
-const { ApolloServer, gql } = require('apollo-server')
+// $ npm install react-scripts
+
+// $ npm install apollo-server graphql
+
+// $ npm install apollo-server-core
+
+const { ApolloServer, UserInputError, gql } = require('apollo-server')
+
+const { ApolloServerPluginLandingPageGraphQLPlayground } = require('apollo-server-core')
+
+//import {
+//  ApolloServerPluginLandingPageGraphQLPlayground
+//} from "apollo-server-core"
 
 let authors = [
   {
@@ -27,16 +39,6 @@ let authors = [
     id: "afa5b6f3-344d-11e9-a414-719c6709cf3e",
   },
 ]
-
-/*
- * Suomi:
- * Saattaisi olla järkevämpää assosioida kirja ja sen tekijä tallettamalla kirjan yhteyteen tekijän nimen sijaan tekijän id
- * Yksinkertaisuuden vuoksi tallennamme kuitenkin kirjan yhteyteen tekijän nimen
- *
- * English:
- * It might make more sense to associate a book with its author by storing the author's name in the context of the book instead of the author's id
- * However, for simplicity, we will store the author's name in connection with the book
-*/
 
 let books = [
   {
@@ -91,18 +93,47 @@ let books = [
 ]
 
 const typeDefs = gql`
+  type Book {
+    title: String!
+    published: Int
+    author: String!
+    genres: [String!]!
+    id: ID!
+  }
   type Query {
+    allBooks: [Book]
+    bookCount: Int!
+    authorCount: Int!
   }
 `
 
+//bookCount: Int!
+//authorCount: Int!
+
 const resolvers = {
   Query: {
+    allBooks: () => books,
+    bookCount: () => books.length,
+    authorCount: () => books.map(book => book.author).filter((value, index, self) => self.indexOf(value) === index).length
+
   }
 }
+
+// PLAYGROUND
+//query {
+//  allBooks {
+//    title
+//    author
+//  }
+//}
 
 const server = new ApolloServer({
   typeDefs,
   resolvers,
+  plugins: [
+    ApolloServerPluginLandingPageGraphQLPlayground(),
+  ],
+  //mocks: true,
 })
 
 server.listen().then(({ url }) => {
