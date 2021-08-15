@@ -10,9 +10,7 @@ const { ApolloServer, UserInputError, gql } = require('apollo-server')
 
 const { ApolloServerPluginLandingPageGraphQLPlayground } = require('apollo-server-core')
 
-//import {
-//  ApolloServerPluginLandingPageGraphQLPlayground
-//} from "apollo-server-core"
+const { v1: uuid } = require('uuid')
 
 let authors = [
   {
@@ -111,7 +109,16 @@ const typeDefs = gql`
     authorCount: Int!
     allAuthors: [Author!]
   }
+  type Mutation {
+    addBook(
+      title: String!
+      author: String!
+      published: Int!
+      genres: [String]
+    ): Book
+  }
 `
+
 // 8.4
 // allBooks(author: String): [Book!]
 
@@ -157,7 +164,20 @@ const resolvers = {
       console.log('author', author)
 
       return books.filter(book => book.author === author.name).length
-
+    },
+  },
+  // 8.6
+  Mutation: {
+    addBook: (root, args) => {
+      console.log('addBook',args.title)
+      if (!authors.find(author => author.name === args.author)) {
+        console.log('addAuthor',args.author)
+        const author = { name: args.author, id: uuid(), born: null }
+        authors = authors.concat(author)
+      }
+      const book = { ...args, id: uuid() }
+      books = books.concat(book)
+      return book
     },
   }
 }
