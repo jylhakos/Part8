@@ -96,7 +96,7 @@ const typeDefs = gql`
     title: String!
     published: Int
     author: String!
-    genres: [String!]!
+    genres: [String]
     id: ID!
   }
   type Author {
@@ -148,7 +148,12 @@ const resolvers = {
     // 8.5
     allBooks: (root, args) => {
 
-      console.log('args:', args.author, args.genre)
+      console.log('args:', args, args.author, args.genre)
+
+      // 8.9
+      if (!args.author && !args.genre) {
+        return books
+      }
 
       if (args.author !== undefined && args.genre !== undefined) {
         return books.filter(book => book.author === args.author && book.genres.includes(args.genre))

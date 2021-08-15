@@ -11,10 +11,21 @@ import NewBook from './components/NewBook'
 const ALL_AUTHORS = gql`
 {
   allAuthors {
-        name,
-        born,
-        bookCount
-      }
+    name,
+    born,
+    bookCount
+  }
+}
+`
+
+const ALL_BOOKS = gql`
+{
+  allBooks {
+    title,
+    author,
+    published,
+    genres
+  }
 }
 `
 
@@ -22,11 +33,19 @@ const App = () => {
 
   const [page, setPage] = useState('authors')
 
-  const result = useQuery(ALL_AUTHORS)
+  const authors_result = useQuery(ALL_AUTHORS)
 
-  console.log('result', result)
+  console.log('authors_result', authors_result)
 
-  if (result.loading)  {
+  const books_result = useQuery(ALL_BOOKS)
+
+  console.log('books_result', books_result)
+
+  if (authors_result.loading)  {
+    return <div>loading...</div>
+  }
+
+  if (books_result.loading)  {
     return <div>loading...</div>
   }
 
@@ -38,11 +57,10 @@ const App = () => {
         <button onClick={() => setPage('add')}>add book</button>
       </div>
 
-      <Authors authors={result.data.allAuthors} show={page === 'authors'}
+      <Authors authors={authors_result.data.allAuthors} show={page === 'authors'}
       />
 
-      <Books
-        show={page === 'books'}
+      <Books books={books_result.data.allBooks}show={page === 'books'}
       />
 
       <NewBook
