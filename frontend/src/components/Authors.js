@@ -1,11 +1,16 @@
-  
-import React from 'react'
+import React, { useState, useEffect } from 'react'
+
+import { gql, useQuery } from '@apollo/client'
 
 const Authors = (props) => {
+
+  console.log('props.show', props.show, props)
+
   if (!props.show) {
     return null
   }
-  const authors = []
+
+  const authors = props.authors
 
   return (
     <div>
