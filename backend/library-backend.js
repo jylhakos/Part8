@@ -155,15 +155,15 @@ const resolvers = {
         return books
       }
 
-      if (args.author !== undefined && args.genre !== undefined) {
+      if (args.author && args.genre) {
         return books.filter(book => book.author === args.author && book.genres.includes(args.genre))
       }
 
-      if (args.genre !== undefined) {
+      if (args.genre) {
         return books.filter(book => book.genres.includes(args.genre))
       }
 
-      if (args.author !== undefined) {
+      if (args.author) {
         return books.filter(book => book.author === args.author)
       }
     },
