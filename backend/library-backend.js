@@ -6,7 +6,14 @@
 
 // $ npm install apollo-server-core
 
-const { ApolloServer, UserInputError, gql } = require('apollo-server')
+const { ApolloServer, gql } = require('apollo-server')
+
+// 8.10
+//const { ApolloServer, gql } = require('apollo-server-express')
+
+//const express = require('express')
+
+const cors = require('cors')
 
 const { ApolloServerPluginLandingPageGraphQLPlayground } = require('apollo-server-core')
 
@@ -94,8 +101,8 @@ let books = [
 const typeDefs = gql`
   type Book {
     title: String!
-    published: Int
     author: String!
+    published: Int
     genres: [String]
     id: ID!
   }
@@ -114,7 +121,7 @@ const typeDefs = gql`
     addBook(
       title: String!
       author: String!
-      published: Int!
+      published: Int
       genres: [String]
     ): Book
     editAuthor(
@@ -213,13 +220,14 @@ const resolvers = {
   }
 }
 
+// 8.10
 const server = new ApolloServer({
+  cors: {origin: 'http://localhost:3000',credentials: true},
   typeDefs,
   resolvers,
   plugins: [
     ApolloServerPluginLandingPageGraphQLPlayground(),
   ],
-  //mocks: true,
 })
 
 server.listen().then(({ url }) => {

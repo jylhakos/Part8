@@ -10,7 +10,9 @@
   "dependencies": {
     "apollo-server": "^3.1.2",
     "apollo-server-core": "^3.1.2",
+    "apollo-server-express": "^3.1.0",
     "axios": "^0.21.1",
+    "express": "^4.17.1",
     "graphql": "^15.5.1",
     "prop-types": "^15.7.2",
     "react": "^17.0.1",

@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react'
 
-import { gql, useQuery } from '@apollo/client'
-
 // 8.8
 const Authors = (props) => {
 
