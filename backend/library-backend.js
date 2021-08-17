@@ -126,7 +126,7 @@ const typeDefs = gql`
     ): Book
     editAuthor(
       name: String!
-      setBornTo: Int!
+      born: Int!
     ): Author   
   }
 `
@@ -199,7 +199,7 @@ const resolvers = {
     // 8.7
     editAuthor: (root, args) => {
 
-      console.log('editAuthor',args.name,args.setBornTo)
+      console.log('editAuthor',args.name,args.born)
 
       const author = authors.find(author => author.name === args.name)
 
@@ -208,7 +208,7 @@ const resolvers = {
       }
       else {
 
-        const updated = { ...author, born: args.setBornTo }
+        const updated = { ...author, born: args.born }
 
         console.log('updated', updated)
 
