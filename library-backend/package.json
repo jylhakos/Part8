@@ -1,0 +1,29 @@
+{
+  "name": "library-backend",
+  "version": "1.0.0",
+  "main": "library-backend.js",
+  "scripts": {
+    "start": "node library-backend.js",
+    "dev": "nodemon library-backend.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "apollo-server": "^3.1.2",
+    "apollo-server-core": "^3.1.2",
+    "apollo-server-express": "^3.1.0",
+    "axios": "^0.21.1",
+    "express": "^4.17.1",
+    "graphql": "^15.5.1",
+    "mongoose": "^5.13.7",
+    "mongoose-unique-validator": "^2.0.3",
+    "prop-types": "^15.7.2",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "react-router-dom": "^5.2.0",
+    "react-scripts": "4.0.1",
+    "web-vitals": "^0.2.4"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
