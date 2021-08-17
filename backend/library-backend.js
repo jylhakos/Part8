@@ -6,6 +6,8 @@
 
 // $ npm install apollo-server-core
 
+// $ npm install mongoose mongoose-unique-validator
+
 const { ApolloServer, gql } = require('apollo-server')
 
 // 8.10

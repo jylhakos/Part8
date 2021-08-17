@@ -1,4 +1,9 @@
+// $ npm install react-select
+
 import React, { useState, useEffect } from 'react'
+
+// 10.12
+import Select from "react-select"
 
 import { useMutation } from '@apollo/client'
 
@@ -32,6 +37,12 @@ const Authors = (props) => {
 
   const authors = props.authors
 
+  console.log('authors', authors)
+
+  const options = authors.map(author => ({ label: author.name, value: author.name }))
+
+  console.log('options', options)
+
   const submit = async (event) => {
 
     event.preventDefault()
@@ -44,6 +55,16 @@ const Authors = (props) => {
 
     setBorn('')
   }
+
+  // 10.11
+  /*
+  <div>
+    name <input
+      value={name}
+      onChange={({ target }) => setName(target.value)}
+    />
+  </div>
+  */
 
   return (
     <>
@@ -74,12 +95,11 @@ const Authors = (props) => {
         <h2>Set birthyear</h2>
 
         <form onSubmit={submit}>
-          <div>
-            name <input
-              value={name}
-              onChange={({ target }) => setName(target.value)}
-            />
-          </div>
+          <Select
+            placeholder={options[0].value}
+            options={options}
+            onChange={option => setName(option.value)}
+          />    
           <div>
             born <input
               type='number'
