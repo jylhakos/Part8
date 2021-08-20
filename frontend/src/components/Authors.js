@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 
-// 10.12
+// 8.12
 import Select from "react-select"
 
 import { useMutation } from '@apollo/client'
@@ -56,7 +56,7 @@ const Authors = (props) => {
     setBorn('')
   }
 
-  // 10.11
+  // 8.11
   /*
   <div>
     name <input

@@ -8,7 +8,9 @@
 
 // $ npm install mongoose mongoose-unique-validator
 
-const { ApolloServer, gql } = require('apollo-server')
+// $ npm install dotenv
+
+const { ApolloServer, UserInputError, gql } = require('apollo-server')
 
 // 8.10
 //const { ApolloServer, gql } = require('apollo-server-express')
@@ -21,7 +23,21 @@ const { ApolloServerPluginLandingPageGraphQLPlayground } = require('apollo-serve
 
 const { v1: uuid } = require('uuid')
 
-let authors = [
+// 8.13
+const mongoose = require('mongoose')
+
+require('dotenv').config()
+
+const Author = require('./models/author')
+
+const Book = require('./models/book')
+
+// TODO
+let authors = []
+// TODO
+let books = []
+
+/*let authors = [
   {
     name: 'Robert Martin',
     id: "afa51ab0-344d-11e9-a414-719c6709cf3e",
@@ -46,7 +62,9 @@ let authors = [
     id: "afa5b6f3-344d-11e9-a414-719c6709cf3e",
   },
 ]
+*/
 
+/*
 let books = [
   {
     title: 'Clean Code',
@@ -98,34 +116,57 @@ let books = [
     genres: ['classic', 'revolution']
   },
 ]
+*/
 
-// 8.1, 8.2, 8.3
+MONGODB_URI="mongodb+srv://fullstack:"+PASSWORD+"@cluster3-13.pmolw.mongodb.net/cs-e4670?retryWrites=true&w=majority"
+
+console.log('MONGODB_URI', process.env.MONGODB_URI)
+
+mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false, useCreateIndex: true })
+  .then(() => {
+    console.log('Connected to MongoDB')
+  })
+  .catch((error) => {
+    console.log('Error connecting to MongoDB:', error.message)
+  })
+
+// 8.13
 const typeDefs = gql`
-  type Book {
-    title: String!
-    author: String!
-    published: Int
-    genres: [String]
-    id: ID!
-  }
   type Author {
     name: String!
     born: Int
-    bookCount: Int!
+    bookCount: Int
   }
+
+  input AuthorInput {
+    name: String!
+    born: Int
+    bookCount: Int
+  }
+
+  type Book {
+    title: String!
+    author: Author!
+    genres: [String]
+    id: ID!
+  }
+
   type Query {
     allBooks(author: String, genre: String): [Book]
     bookCount: Int!
     authorCount: Int!
     allAuthors: [Author!]
   }
+
   type Mutation {
     addBook(
       title: String!
-      author: String!
+      name: String!
+      born: Int
       published: Int
       genres: [String]
     ): Book
+
     editAuthor(
       name: String!
       born: Int!
@@ -185,38 +226,111 @@ const resolvers = {
       return books.filter(book => book.author === author.name).length
     },
   },
-  // 8.6
+  // 8.13
   Mutation: {
-    addBook: (root, args) => {
-      console.log('addBook',args.title)
-      if (!authors.find(author => author.name === args.author)) {
-        console.log('addAuthor',args.author)
-        const author = { name: args.author, id: uuid(), born: null }
-        authors = authors.concat(author)
+
+    addBook: async (root, args) => {
+
+        console.log('addBook', { ...args })
+
+        //if (! await authors.find(author => author.name === args.author)) {
+
+        console.log('args.name', args.name)
+
+        const result = await Author.findOne({name: args.name})
+
+        console.log('result', result)
+
+        if (!result) {
+
+          console.log('addAuthor', args.name, args.born)
+
+          //const author = { name: args.author, id: uuid(), born: null }
+
+          const author = new Author({...args, id: uuid()})
+
+          console.log('author', author)
+
+          //TODO
+          authors = authors.concat(author)
+
+          try {
+
+            console.log('save', author)
+
+            await author.save()
+
+          } catch (error) {
+            throw new UserInputError(error.message, {
+              invalidArgs: args,
+            })
+          }
       }
-      const book = { ...args, id: uuid() }
+
+      console.log('args.title', args.title)
+
+      //const book = { ...args, id: uuid() }
+
+      const book = new Book({...args, id: uuid()})
+
+      console.log('book', book)
+
+      //TODO
       books = books.concat(book)
+
+      try {
+
+        console.log('save', book)
+
+        await book.save()
+
+      } catch (error) {
+        throw new UserInputError(error.message, {
+          invalidArgs: args,
+        })
+      }
+
+      console.log('return', book)
+
       return book
     },
     // 8.7
-    editAuthor: (root, args) => {
+    editAuthor: async (root, args) => {
 
-      console.log('editAuthor',args.name,args.born)
+      console.log('editAuthor', args.name, args.born)
 
-      const author = authors.find(author => author.name === args.name)
+      const author = await Author.findOne({name: args.name}) 
+
+      // const author = authors.find(author => author.name === args.name)
 
       if (!author) {
+
+        console.log('author is not found', author)
+
         return null
       }
       else {
 
-        const updated = { ...author, born: args.born }
+        const authorUpdated = {...author, born: args.born}
 
-        console.log('updated', updated)
+        console.log('authorUpdated', authorUpdated)
 
-        authors = authors.map(author => author.name === args.name ? updated : author)
+        authors = authors.map(author => author.name === args.name ? authorUpdated : author)
 
-        return updated
+        console.log('authors', authors)
+
+        try {
+
+          await authorUpdated.save()
+
+        } catch (error) {
+          throw new UserInputError(error.message, {
+            invalidArgs: args,
+        })
+      }
+
+      return authorUpdated
+
       }
     }
   }
