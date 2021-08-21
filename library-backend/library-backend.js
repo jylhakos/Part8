@@ -10,6 +10,8 @@
 
 // $ npm install dotenv
 
+// $ npm install jsonwebtoken
+
 const { ApolloServer, UserInputError, gql } = require('apollo-server')
 
 // 8.10
@@ -23,10 +25,15 @@ const { ApolloServerPluginLandingPageGraphQLPlayground } = require('apollo-serve
 
 const { v1: uuid } = require('uuid')
 
+// 8.16
+const jwt = require('jsonwebtoken')
+
 // 8.13
 const mongoose = require('mongoose')
 
 require('dotenv').config()
+
+const User = require('./models/user')
 
 const Author = require('./models/author')
 
@@ -44,8 +51,21 @@ mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true,
     console.log('Error connecting to MongoDB:', error.message)
   })
 
-// 8.13
+const JWT_SECRET = process.env.JWT_SECRET_KEY
+
+// 8.13, 8.16
 const typeDefs = gql`
+
+  type User {
+    username: String!
+    favoriteGenre: String
+    id: ID
+  }
+
+  type Token {
+    value: String!
+  }
+
   type Author {
     name: String!
     born: Int
@@ -70,22 +90,34 @@ const typeDefs = gql`
     bookCount: Int!
     authorCount: Int!
     allAuthors: [Author!]
+    me: User
   }
 
   type Mutation {
-    addBook(
-      title: String!
-      name: String!
-      born: Int
-      published: Int
-      genres: [String]
-    ): Book
 
-    editAuthor(
-      name: String!
-      born: Int!
-    ): Author   
-  }
+  createUser(
+    username: String!
+    favoriteGenre: String
+  ): User
+
+  login(
+    username: String!
+    password: String!
+  ): Token
+
+  addBook(
+    title: String!
+    name: String!
+    born: Int
+    published: Int
+    genres: [String]
+  ): Book
+
+  editAuthor(
+    name: String!
+    born: Int!
+  ): Author   
+}
 `
 
 const resolvers = {
@@ -125,6 +157,9 @@ const resolvers = {
         return objects.filter(book => book.author === args.author)
       }
     },
+    me: (root, args, context) => {
+      return context.currentUser
+    },
   },
   Author: {
     bookCount: (author) => {
@@ -141,36 +176,68 @@ const resolvers = {
   // 8.13
   Mutation: {
 
-    addBook: async (root, args) => {
+    createUser: (root, args) => {
+      const user = new User({ username: args.username})
 
-        console.log('addBook', { ...args })
+      return user.save()
+        .catch(error => {
+          throw new UserInputError(error.message, {
+            invalidArgs: args,
+          })
+        })
+    },
 
-        console.log('args.name', args.name)
+    login: async (root, args) => {
+      const user = await User.findOne({ username: args.username })
 
-        const result = await Author.findOne({name: args.name})
+      if ( !user || args.password !== 'secret' ) {
+        throw new UserInputError("wrong credentials")
+      }
 
-        console.log('result', result)
+      const userForToken = {
+        username: user.username,
+        id: user._id,
+      }
+  
+      return { value: jwt.sign(userForToken, JWT_SECRET) }
+    },
 
-        if (!result) {
+    addBook: async (root, args, context) => {
 
-          console.log('addAuthor', args.name, args.born)
+      const currentUser = context.currentUser
 
-          const author = new Author({...args, id: uuid()})
+      if (!currentUser) {
+        throw new AuthenticationError("not authenticated")
+      }
 
-          console.log('author', author)
+      console.log('addBook', { ...args })
 
-          try {
+      console.log('args.name', args.name)
 
-            console.log('save', author)
+      const result = await Author.findOne({name: args.name})
 
-            await author.save()
+      console.log('result', result)
 
-          } catch (error) {
-            // 8.15
-            throw new UserInputError(error.message, {
-              invalidArgs: args,
-            })
-          }
+      if (!result) {
+
+        console.log('addAuthor', args.name, args.born)
+
+        const author = new Author({...args, id: uuid()})
+
+        console.log('author', author)
+
+        try {
+
+          console.log('save', author)
+
+          await author.save()
+
+        } catch (error) {
+          // 8.15
+          throw new UserInputError(error.message, {
+            invalidArgs: args,
+          })
+        }
       }
 
       console.log('args.title', args.title)
@@ -197,7 +264,13 @@ const resolvers = {
       return book
     },
     // 8.14
-    editAuthor: async (root, args) => {
+    editAuthor: async (root, args, context) => {
+
+      const currentUser = context.currentUser
+
+      if (!currentUser) {
+        throw new AuthenticationError("not authenticated")
+      }
 
       console.log('editAuthor', args.name, args.born)
 
@@ -233,16 +306,27 @@ const resolvers = {
   }
 }
 
-// 8.10
+// 8.10, 8.16
 const server = new ApolloServer({
   cors: {origin: 'http://localhost:3000',credentials: true},
   typeDefs,
   resolvers,
+  context: async ({ req }) => {
+    const auth = req ? req.headers.authorization : null
+
+    if (auth && auth.toLowerCase().startsWith('bearer ')) {
+      const decodedToken = jwt.verify(auth.substring(7), JWT_SECRET)
+      const currentUser = await User.findById(decodedToken.id).populate('friends')
+      return { currentUser }
+    }
+  },
   plugins: [
     ApolloServerPluginLandingPageGraphQLPlayground(),
   ],
+
 })
 
 server.listen().then(({ url }) => {
   console.log(`Server ready at ${url}`)
 })
+
