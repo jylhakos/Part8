@@ -80,7 +80,8 @@ const typeDefs = gql`
 
   type Book {
     title: String!
-    author: Author!
+    author: Author
+    published: Int
     genres: [String]
     id: ID!
   }
@@ -132,16 +133,18 @@ const resolvers = {
     // 8.14
     allBooks: async (root, args) => {
 
-      console.log('args:', args, args.author, args.genre)
-
-      // 8.14
-      if (!args.author && !args.genre) {
-        return Book.find({})
-      }
+      console.log('args:', args)
 
       const result = await Book.find({})
 
       const objects = result.map((r) => r.toObject())
+
+      console.log('allBooks', objects)
+
+      // 8.14, 8.17
+      if (!args.author && !args.genre) {
+        return objects
+      }
 
       console.log('objects', objects)
 
@@ -162,15 +165,17 @@ const resolvers = {
     },
   },
   Author: {
-    bookCount: (author) => {
+    bookCount: async (author) => {
 
       console.log('author', author)
 
-      const result = Book.find({})
+      const result = await Book.find({})
 
-      console.log('result', result)
+      const objects = result.map((r) => r.toObject())
 
-      return result.filter(book => book.author === author.name).length
+      console.log('objects', objects)
+
+      return objects.filter(book => book.author === author.name).length
     },
   },
   // 8.13
@@ -308,7 +313,7 @@ const resolvers = {
 
 // 8.10, 8.16
 const server = new ApolloServer({
-  cors: {origin: 'http://localhost:3000',credentials: true},
+  //cors: {origin: 'http://localhost:3000',credentials: true},
   typeDefs,
   resolvers,
   context: async ({ req }) => {

@@ -1,11 +1,10 @@
 import { gql  } from '@apollo/client'
 
-// 8.2
+// 8.17
 export const ALL_BOOKS = gql`
 {
   allBooks {
     title,
-    author,
     published,
     genres
   }
