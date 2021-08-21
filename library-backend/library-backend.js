@@ -145,8 +145,6 @@ const resolvers = {
 
         console.log('addBook', { ...args })
 
-        //if (! await authors.find(author => author.name === args.author)) {
-
         console.log('args.name', args.name)
 
         const result = await Author.findOne({name: args.name})
@@ -156,8 +154,6 @@ const resolvers = {
         if (!result) {
 
           console.log('addAuthor', args.name, args.born)
-
-          //const author = { name: args.author, id: uuid(), born: null }
 
           const author = new Author({...args, id: uuid()})
 
@@ -170,6 +166,7 @@ const resolvers = {
             await author.save()
 
           } catch (error) {
+            // 8.15
             throw new UserInputError(error.message, {
               invalidArgs: args,
             })
@@ -177,8 +174,6 @@ const resolvers = {
       }
 
       console.log('args.title', args.title)
-
-      //const book = { ...args, id: uuid() }
 
       const book = new Book({...args, id: uuid()})
 
@@ -191,6 +186,7 @@ const resolvers = {
         await book.save()
 
       } catch (error) {
+        // 8.15
         throw new UserInputError(error.message, {
           invalidArgs: args,
         })
@@ -207,8 +203,6 @@ const resolvers = {
 
       const author = await Author.findOne({name: args.name}) 
 
-      // const author = authors.find(author => author.name === args.name)
-
       if (!author) {
 
         console.log('author is not found', author)
@@ -221,15 +215,12 @@ const resolvers = {
 
         console.log('author', author)
 
-        //authors = authors.map(author => author.name === args.name ? authorUpdated : author)
-
-        //console.log('authors', authors)
-
         try {
 
           await author.save()
 
         } catch (error) {
+          // 8.15
           throw new UserInputError(error.message, {
             invalidArgs: args,
         })
