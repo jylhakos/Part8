@@ -32,93 +32,7 @@ const Author = require('./models/author')
 
 const Book = require('./models/book')
 
-// TODO
-let authors = []
-// TODO
-let books = []
-
-/*let authors = [
-  {
-    name: 'Robert Martin',
-    id: "afa51ab0-344d-11e9-a414-719c6709cf3e",
-    born: 1952,
-  },
-  {
-    name: 'Martin Fowler',
-    id: "afa5b6f0-344d-11e9-a414-719c6709cf3e",
-    born: 1963
-  },
-  {
-    name: 'Fyodor Dostoevsky',
-    id: "afa5b6f1-344d-11e9-a414-719c6709cf3e",
-    born: 1821
-  },
-  { 
-    name: 'Joshua Kerievsky', // birthyear not known
-    id: "afa5b6f2-344d-11e9-a414-719c6709cf3e",
-  },
-  { 
-    name: 'Sandi Metz', // birthyear not known
-    id: "afa5b6f3-344d-11e9-a414-719c6709cf3e",
-  },
-]
-*/
-
-/*
-let books = [
-  {
-    title: 'Clean Code',
-    published: 2008,
-    author: 'Robert Martin',
-    id: "afa5b6f4-344d-11e9-a414-719c6709cf3e",
-    genres: ['refactoring']
-  },
-  {
-    title: 'Agile software development',
-    published: 2002,
-    author: 'Robert Martin',
-    id: "afa5b6f5-344d-11e9-a414-719c6709cf3e",
-    genres: ['agile', 'patterns', 'design']
-  },
-  {
-    title: 'Refactoring, edition 2',
-    published: 2018,
-    author: 'Martin Fowler',
-    id: "afa5de00-344d-11e9-a414-719c6709cf3e",
-    genres: ['refactoring']
-  },
-  {
-    title: 'Refactoring to patterns',
-    published: 2008,
-    author: 'Joshua Kerievsky',
-    id: "afa5de01-344d-11e9-a414-719c6709cf3e",
-    genres: ['refactoring', 'patterns']
-  },  
-  {
-    title: 'Practical Object-Oriented Design, An Agile Primer Using Ruby',
-    published: 2012,
-    author: 'Sandi Metz',
-    id: "afa5de02-344d-11e9-a414-719c6709cf3e",
-    genres: ['refactoring', 'design']
-  },
-  {
-    title: 'Crime and punishment',
-    published: 1866,
-    author: 'Fyodor Dostoevsky',
-    id: "afa5de03-344d-11e9-a414-719c6709cf3e",
-    genres: ['classic', 'crime']
-  },
-  {
-    title: 'The Demon ',
-    published: 1872,
-    author: 'Fyodor Dostoevsky',
-    id: "afa5de04-344d-11e9-a414-719c6709cf3e",
-    genres: ['classic', 'revolution']
-  },
-]
-*/
-
-MONGODB_URI="mongodb+srv://fullstack:"+PASSWORD+"@cluster3-13.pmolw.mongodb.net/cs-e4670?retryWrites=true&w=majority"
+MONGODB_URI="mongodb+srv://fullstack:"+process.env.PASSWORD+"@cluster3-13.pmolw.mongodb.net/cs-e4670?retryWrites=true&w=majority"
 
 console.log('MONGODB_URI', process.env.MONGODB_URI)
 
@@ -174,47 +88,41 @@ const typeDefs = gql`
   }
 `
 
-// 8.4
-// allBooks(author: String): [Book!]
-
 const resolvers = {
   Query: {
-    // 8.1
-    bookCount: () => books.length,
-    authorCount: () => books.map(book => book.author).filter((value, index, self) => self.indexOf(value) === index).length,
-    // 8.2
-    //allBooks: () => books,
-    // 8.3
-    allAuthors: () => authors,
-    // 8.4
-    /*
-    allBooks: (root, args) => {
+    // 8.14
+    bookCount: () => Book.collection.countDocuments(),
 
-      console.log('args', args)
+    authorCount:  () =>  Author.collection.countDocuments(),
 
-      return books.filter(book => book.author === args.author)
-    },
-    */
-    // 8.5
-    allBooks: (root, args) => {
+    allAuthors: () => Author.find({}),
+
+    // 8.14
+    allBooks: async (root, args) => {
 
       console.log('args:', args, args.author, args.genre)
 
-      // 8.9
+      // 8.14
       if (!args.author && !args.genre) {
-        return books
+        return Book.find({})
       }
 
+      const result = await Book.find({})
+
+      const objects = result.map((r) => r.toObject())
+
+      console.log('objects', objects)
+
       if (args.author && args.genre) {
-        return books.filter(book => book.author === args.author && book.genres.includes(args.genre))
+        return objects.filter(book => book.author === args.author && book.genres.includes(args.genre))
       }
 
       if (args.genre) {
-        return books.filter(book => book.genres.includes(args.genre))
+        return objects.filter(book => book.genres.includes(args.genre))
       }
 
       if (args.author) {
-        return books.filter(book => book.author === args.author)
+        return objects.filter(book => book.author === args.author)
       }
     },
   },
@@ -223,7 +131,11 @@ const resolvers = {
 
       console.log('author', author)
 
-      return books.filter(book => book.author === author.name).length
+      const result = Book.find({})
+
+      console.log('result', result)
+
+      return result.filter(book => book.author === author.name).length
     },
   },
   // 8.13
@@ -251,9 +163,6 @@ const resolvers = {
 
           console.log('author', author)
 
-          //TODO
-          authors = authors.concat(author)
-
           try {
 
             console.log('save', author)
@@ -275,9 +184,6 @@ const resolvers = {
 
       console.log('book', book)
 
-      //TODO
-      books = books.concat(book)
-
       try {
 
         console.log('save', book)
@@ -294,7 +200,7 @@ const resolvers = {
 
       return book
     },
-    // 8.7
+    // 8.14
     editAuthor: async (root, args) => {
 
       console.log('editAuthor', args.name, args.born)
@@ -311,17 +217,17 @@ const resolvers = {
       }
       else {
 
-        const authorUpdated = {...author, born: args.born}
+        author.born = args.born
 
-        console.log('authorUpdated', authorUpdated)
+        console.log('author', author)
 
-        authors = authors.map(author => author.name === args.name ? authorUpdated : author)
+        //authors = authors.map(author => author.name === args.name ? authorUpdated : author)
 
-        console.log('authors', authors)
+        //console.log('authors', authors)
 
         try {
 
-          await authorUpdated.save()
+          await author.save()
 
         } catch (error) {
           throw new UserInputError(error.message, {
@@ -329,7 +235,7 @@ const resolvers = {
         })
       }
 
-      return authorUpdated
+      return author
 
       }
     }
