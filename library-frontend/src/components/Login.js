@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { useMutation } from '@apollo/client'
 import { LOGIN } from '../queries'
 
-const Login = ({ setError, setToken }) => {
+const Login = ({ setToken, setUser }) => {
+//const Login = ({ setError, setToken, setUser }) => {
 
   const [username, setUsername] = useState('')
 
@@ -10,7 +11,8 @@ const Login = ({ setError, setToken }) => {
 
   const [ login, result ] = useMutation(LOGIN, {
     onError: (error) => {
-      setError(error.graphQLErrors[0].message)
+      console.log(error.graphQLErrors[0].message)
+      //setError(error.graphQLErrors[0].message)
     }
   })
 
@@ -28,6 +30,8 @@ const Login = ({ setError, setToken }) => {
     event.preventDefault()
 
     login({ variables: { username, password } })
+
+    setUser(username)
   }
 
   return (

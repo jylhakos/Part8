@@ -92,6 +92,7 @@ const typeDefs = gql`
     authorCount: Int!
     allAuthors: [Author!]
     me: User
+    favoriteGenre(username: String): User
   }
 
   type Mutation {
@@ -163,6 +164,18 @@ const resolvers = {
     me: (root, args, context) => {
       return context.currentUser
     },
+    // 8.20
+    favoriteGenre: async (root, args, context) => {
+      console.log('favoriteGenre', args.username)
+      //const currentUser = context.currentUser
+
+      //if (!currentUser) {
+      //  throw new AuthenticationError("not authenticated")
+      //}
+
+      const user = await User.findOne({ username: args.username })
+      return user
+    },
   },
   Author: {
     bookCount: async (author) => {
@@ -178,11 +191,12 @@ const resolvers = {
       return objects.filter(book => book.author === author.name).length
     },
   },
-  // 8.13
+  // 8.13, 8.20
   Mutation: {
-
     createUser: (root, args) => {
-      const user = new User({ username: args.username})
+      const user = new User({ username: args.username, favoriteGenre: args.favoriteGenre})
+
+      console.log('createUser', user)
 
       return user.save()
         .catch(error => {

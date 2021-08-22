@@ -1,10 +1,19 @@
-import { gql  } from '@apollo/client'
+import gql from 'graphql-tag'
 
 // 8.18
 export const LOGIN = gql`
   mutation login($username: String!, $password: String!) {
     login(username: $username, password: $password)  {
       value
+    }
+  }
+`
+
+// 8.20
+export const FAVORITE = gql`
+  query favoriteGenre($username: String!) {
+    favoriteGenre(username: $username) {
+      favoriteGenre
     }
   }
 `

@@ -4,7 +4,7 @@ import React from 'react'
 
 import ReactDOM from 'react-dom'
 
-import { ApolloClient, ApolloProvider, HttpLink, InMemoryCache, gql} from '@apollo/client'
+import { ApolloClient, ApolloProvider, HttpLink, InMemoryCache } from '@apollo/client'
 
 import { setContext } from '@apollo/client/link/context'
 

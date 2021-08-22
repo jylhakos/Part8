@@ -10,7 +10,7 @@ const Books = (props) => {
 
   const [books, setBooks] = useState(data)
 
-  const [genre, setGenre] = useState(null)
+  const [genre, setGenre] = useState('all')
 
   const [options, setOptions] = useState([])
 
@@ -18,10 +18,6 @@ const Books = (props) => {
   useEffect(() => {
 
     console.log('genre', genre)
-
-    if (genre === null) {
-      return
-    }
 
     if (genre === 'all') {
       setBooks(data)

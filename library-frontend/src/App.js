@@ -10,12 +10,17 @@ import Books from './components/Books'
 
 import NewBook from './components/NewBook'
 
+import Recommend from './components/Recommend'
+
 import { LOGIN, ALL_BOOKS, ALL_AUTHORS } from './queries'
 
 const App = () => {
 
   // 8.18
   const [token, setToken] = useState(null)
+
+  // 8.20
+  const [username, setUser] = useState(null)
 
   const client = useApolloClient()
 
@@ -39,6 +44,7 @@ const App = () => {
 
   const logout = () => {
     setToken(null)
+    setUser(null)
     localStorage.clear()
     client.resetStore()
   }
@@ -49,6 +55,7 @@ const App = () => {
         <h2>Login</h2>
         <Login
           setToken={setToken}
+          setUser={setUser}
         />
       </div>
     )
@@ -60,6 +67,7 @@ const App = () => {
         <button onClick={() => setPage('authors')}>authors</button>
         <button onClick={() => setPage('books')}>books</button>
         <button onClick={() => setPage('add')}>add book</button>
+        <button onClick={() => setPage('recommend')}>recommend</button>
         <button onClick={logout}>logout</button>
       </div>
 
@@ -72,7 +80,8 @@ const App = () => {
       <NewBook show={page === 'add'}
       />
 
-
+      <Recommend recommend={books_result.data.allBooks} username={username} show={page === 'recommend'}
+      />
 
     </div>
   )
