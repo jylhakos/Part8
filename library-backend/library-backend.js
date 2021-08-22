@@ -12,6 +12,11 @@
 
 // $ npm install jsonwebtoken
 
+// $ npm install graphql-subscriptions
+
+// 8.23
+// $ npm install apollo-server@2.25.2
+
 const { ApolloServer, UserInputError, gql } = require('apollo-server')
 
 // 8.10
@@ -31,6 +36,9 @@ const jwt = require('jsonwebtoken')
 // 8.13
 const mongoose = require('mongoose')
 
+// 8.23
+const { PubSub } = require('graphql-subscriptions')
+
 require('dotenv').config()
 
 const User = require('./models/user')
@@ -38,6 +46,9 @@ const User = require('./models/user')
 const Author = require('./models/author')
 
 const Book = require('./models/book')
+
+// 8.23
+const pubsub = new PubSub()
 
 MONGODB_URI="mongodb+srv://fullstack:"+process.env.PASSWORD+"@cluster3-13.pmolw.mongodb.net/cs-e4670?retryWrites=true&w=majority"
 
@@ -55,7 +66,6 @@ const JWT_SECRET = process.env.JWT_SECRET_KEY
 
 // 8.13, 8.16
 const typeDefs = gql`
-
   type User {
     username: String!
     favoriteGenre: String
@@ -97,29 +107,33 @@ const typeDefs = gql`
 
   type Mutation {
 
-  createUser(
-    username: String!
-    favoriteGenre: String
-  ): User
+    createUser(
+      username: String!
+      favoriteGenre: String
+    ): User
 
-  login(
-    username: String!
-    password: String!
-  ): Token
+    login(
+      username: String!
+      password: String!
+    ): Token
 
-  addBook(
-    title: String!
-    name: String!
-    born: Int
-    published: Int
-    genres: [String]
-  ): Book
+    addBook(
+      title: String!
+      name: String!
+      born: Int
+      published: Int
+      genres: [String]
+    ): Book
 
-  editAuthor(
-    name: String!
-    born: Int!
-  ): Author   
-}
+    editAuthor(
+      name: String!
+      born: Int!
+    ): Author   
+  }
+
+  type Subscription {
+    bookAdded: Book!
+  }
 `
 
 const resolvers = {
@@ -223,11 +237,11 @@ const resolvers = {
 
     addBook: async (root, args, context) => {
 
-      const currentUser = context.currentUser
+      //const currentUser = context.currentUser
 
-      if (!currentUser) {
-        throw new AuthenticationError("not authenticated")
-      }
+      //if (!currentUser) {
+      //  throw new AuthenticationError("not authenticated")
+      //}
 
       console.log('addBook', { ...args })
 
@@ -278,6 +292,9 @@ const resolvers = {
         })
       }
 
+      // 8.23
+      pubsub.publish('BOOK_ADDED', { bookAdded: book })
+
       console.log('return', book)
 
       return book
@@ -321,8 +338,12 @@ const resolvers = {
       return author
 
       }
-    }
-  }
+    },
+  },Subscription: {
+    bookAdded: {
+      subscribe: () => pubsub.asyncIterator(['BOOK_ADDED'])
+      },
+    },
 }
 
 // 8.10, 8.16
@@ -345,7 +366,38 @@ const server = new ApolloServer({
 
 })
 
-server.listen().then(({ url }) => {
+// 8.23
+server.listen().then(({ url, subscriptionsUrl }) => {
+
   console.log(`Server ready at ${url}`)
+
+  console.log(`Subscriptions ready at ${subscriptionsUrl}`)
 })
 
+// 8.23
+
+/*
+subscription {
+  bookAdded {
+    title,
+    published,
+    genres
+  }
+}
+*/
+
+/*
+mutation {
+  addBook(
+    title: "The Demon",
+    name: "Fyodor Dostoevsky",
+    born: 1821,
+    published: 1872,
+    genres: ["classic", "revolution"]
+  ) {
+    title
+    published
+    genres
+  }
+}
+*/
