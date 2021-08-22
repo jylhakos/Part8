@@ -1,14 +1,21 @@
 // $ npm install @apollo/client graphql
 
+// $ npm install @apollo/client subscriptions-transport-ws
+
 import React from 'react'
 
 import ReactDOM from 'react-dom'
 
-import { ApolloClient, ApolloProvider, HttpLink, InMemoryCache } from '@apollo/client'
+import { ApolloClient, ApolloProvider, HttpLink, InMemoryCache, split } from '@apollo/client'
 
 import { setContext } from '@apollo/client/link/context'
 
 import { onError } from 'apollo-link-error'
+
+// 8.23
+import { getMainDefinition } from '@apollo/client/utilities'
+
+import { WebSocketLink } from '@apollo/client/link/ws'
 
 import App from './App'
 
@@ -29,12 +36,34 @@ const authLink = setContext((_, { headers }) => {
 
 const httpLink = new HttpLink({ uri: 'http://localhost:4000' })
 
+// 8.23
+const wsLink = new WebSocketLink({
+  uri: `ws://localhost:4000/graphql`,
+  options: {
+    reconnect: true
+  }
+})
+
+const splitLink = split(
+  ({ query }) => {
+    const definition = getMainDefinition(query)
+    return (
+      definition.kind === 'OperationDefinition' &&
+      definition.operation === 'subscription'
+    );
+  },
+  wsLink,
+  authLink.concat(httpLink),
+)
+
+// 8.23
 const client = new ApolloClient({
   cache: new InMemoryCache(),
   //link: new HttpLink({
   //  uri: 'http://localhost:4000',
   //}),
-  link: authLink.concat(httpLink),
+  //link: authLink.concat(httpLink),
+  link: splitLink,
   onError: ({ networkError, graphQLErrors }) => {
     console.log('graphQLErrors', graphQLErrors)
     console.log('networkError', networkError)
