@@ -75,6 +75,10 @@ const Recommend = (props) => {
   return (
     <div>
       <h2>Recommendations</h2>
+      <div style={{paddingTop: "10px"}}>
+      books in your favorite genre <b>{favoriteGenre}</b>
+      </div>
+      <div style={{paddingTop: "10px"}}>
       <table>
         <tbody>
           <tr>
@@ -95,6 +99,7 @@ const Recommend = (props) => {
           )}
         </tbody>
       </table>
+      </div>
     </div>
   )
 }
