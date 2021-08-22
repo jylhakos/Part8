@@ -181,11 +181,12 @@ const resolvers = {
     // 8.20
     favoriteGenre: async (root, args, context) => {
       console.log('favoriteGenre', args.username)
-      const currentUser = context.currentUser
+      
+      //const currentUser = context.currentUser
 
-      if (!currentUser) {
-        throw new AuthenticationError("not authenticated")
-      }
+      //if (!currentUser) {
+      //  throw new AuthenticationError("not authenticated")
+      //}
 
       const user = await User.findOne({ username: args.username })
       return user
@@ -237,11 +238,11 @@ const resolvers = {
 
     addBook: async (root, args, context) => {
 
-      const currentUser = context.currentUser
+      //const currentUser = context.currentUser
 
-      if (!currentUser) {
-        throw new AuthenticationError("not authenticated")
-      }
+      //if (!currentUser) {
+      //  throw new AuthenticationError("not authenticated")
+      //}
 
       console.log('addBook', { ...args })
 

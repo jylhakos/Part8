@@ -44,6 +44,7 @@ const Recommend = (props) => {
 
   //console.log('query_result', query_result)
 
+  // TODO query after user login
   const favoriteGenre = query_result.favoriteGenre
 
   console.log('favoriteGenre', favoriteGenre)

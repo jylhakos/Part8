@@ -31,7 +31,7 @@ const App = () => {
     onSubscriptionData: ({ subscriptionData }) => {
       console.log(subscriptionData)
       const addedBook = subscriptionData.data.bookAdded
-      window.alert(`The book ${addedBook.title} added`)
+      window.alert(`book ${addedBook.title} added`)
     }
   })
 
