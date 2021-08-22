@@ -17,7 +17,7 @@
 // 8.23
 // $ npm install apollo-server@2.25.2
 
-const { ApolloServer, UserInputError, gql } = require('apollo-server')
+const { ApolloServer, UserInputError, AuthenticationError, gql } = require('apollo-server')
 
 // 8.10
 //const { ApolloServer, gql } = require('apollo-server-express')
@@ -69,7 +69,7 @@ const typeDefs = gql`
   type User {
     username: String!
     favoriteGenre: String
-    id: ID
+    id: ID!
   }
 
   type Token {
@@ -80,6 +80,7 @@ const typeDefs = gql`
     name: String!
     born: Int
     bookCount: Int
+    id: ID!
   }
 
   input AuthorInput {
@@ -119,8 +120,7 @@ const typeDefs = gql`
 
     addBook(
       title: String!
-      name: String!
-      born: Int
+      author: AuthorInput
       published: Int
       genres: [String]
     ): Book
@@ -150,29 +150,70 @@ const resolvers = {
 
       console.log('args:', args)
 
-      const result = await Book.find({})
+      const results = await Book.find({})
 
-      const objects = result.map((r) => r.toObject())
+      console.log('results:', results)
 
-      console.log('allBooks', objects)
+      const objects = results.map((r) => r.toObject())
+
+      let books = []
+
+      const authors = await Author.find({})
+
+      console.log('authors', authors)
+
+      objects.map((object) => {
+
+        console.log('object', object, 'author',  object.author)
+
+        const object_author = object.author
+
+        let author_name = null
+
+        authors.forEach(function (author) {
+
+          console.log('object_author', object_author, 'author._id', author._id, 'author.name', author.name)
+          
+          author_id = author._id
+
+          //console.log(typeof 'object_author', typeof 'author_id')
+
+          if (object_author.equals(author_id)) {
+            author_name = author.name
+            console.log('author_name equals', author_name)
+          }
+        })
+
+        console.log('author_name', author_name)
+
+        const book = { 
+          title: object.title,
+          author: { name : author_name },
+          published: object.published,
+          genres: object.genres,
+          id: object._id,
+        }
+
+          books.push(book)
+      })
+      
 
       // 8.14, 8.17
       if (!args.author && !args.genre) {
-        return objects
+        console.log('books', books)
+        return books
       }
 
-      console.log('objects', objects)
-
       if (args.author && args.genre) {
-        return objects.filter(book => book.author === args.author && book.genres.includes(args.genre))
+        return result.filter(book => book.author === args.author && book.genres.includes(args.genre))
       }
 
       if (args.genre) {
-        return objects.filter(book => book.genres.includes(args.genre))
+        return result.filter(book => book.genres.includes(args.genre))
       }
 
       if (args.author) {
-        return objects.filter(book => book.author === args.author)
+        return result.filter(book => book.author === args.author)
       }
     },
     me: (root, args, context) => {
@@ -195,15 +236,16 @@ const resolvers = {
   Author: {
     bookCount: async (author) => {
 
-      console.log('author', author)
+      console.log('bookCount author', author)
 
       const result = await Book.find({})
 
       const objects = result.map((r) => r.toObject())
 
-      console.log('objects', objects)
+      console.log('bookCount objects', objects)
 
-      return objects.filter(book => book.author === author.name).length
+      //return objects.filter(book => book.author.name === author.name).length
+      return objects.filter(book => book.author.name === author.name).length
     },
   },
   // 8.13, 8.20
@@ -213,8 +255,17 @@ const resolvers = {
 
       console.log('createUser', user)
 
-      return user.save()
-        .catch(error => {
+      user.save().then(u => {
+
+        console.log('u._id', u._id)
+
+        user.id = u._id
+
+        console.log('user', user)
+
+        return user
+
+      }).catch(error => {
           throw new UserInputError(error.message, {
             invalidArgs: args,
           })
@@ -246,17 +297,19 @@ const resolvers = {
 
       console.log('addBook', { ...args })
 
-      console.log('args.name', args.name)
+      console.log('args.author.name', args.author.name)
 
-      const result = await Author.findOne({name: args.name})
+      const find_result = await Author.findOne({name: args.author.name})
 
-      console.log('result', result)
+      console.log('find_result', find_result)
 
-      if (!result) {
+      let author = find_result
 
-        console.log('addAuthor', args.name, args.born)
+      if (!find_result) {
 
-        const author = new Author({...args, id: uuid()})
+        console.log('addAuthor', args.author.name, args.author.born)
+
+        author = new Author({...args.author, id: uuid()})
 
         console.log('author', author)
 
@@ -264,7 +317,13 @@ const resolvers = {
 
           console.log('save', author)
 
-          await author.save()
+          const save_result = await author.save()
+
+          console.log('save_result._id', save_result._id)
+
+          author.id = save_result._id
+
+          console.log('author', author)
 
         } catch (error) {
           // 8.15
@@ -274,9 +333,15 @@ const resolvers = {
         }
       }
 
+      console.log('...args', {...args})
+
       console.log('args.title', args.title)
 
-      const book = new Book({...args, id: uuid()})
+      const book = new Book({title: args.title,
+                            author: author,
+                            published: args.published,
+                            genres: args.genres,
+                            id: uuid()})
 
       console.log('book', book)
 
@@ -284,7 +349,13 @@ const resolvers = {
 
         console.log('save', book)
 
-        await book.save()
+        const book_result = await book.save()
+
+        //console.log('book_result._id', book_result._id)
+
+        //book.id = book_result._id
+
+        console.log('book', book)
 
       } catch (error) {
         // 8.15
@@ -303,11 +374,11 @@ const resolvers = {
     // 8.14
     editAuthor: async (root, args, context) => {
 
-      const currentUser = context.currentUser
+      //const currentUser = context.currentUser
 
-      if (!currentUser) {
-        throw new AuthenticationError("not authenticated")
-      }
+      //if (!currentUser) {
+      //  throw new AuthenticationError("not authenticated")
+      //}
 
       console.log('editAuthor', args.name, args.born)
 

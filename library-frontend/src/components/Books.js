@@ -28,7 +28,7 @@ const Books = (props) => {
       setBooks(tmp)
     }
 
-    console.log('books', books)
+    console.log('Books', books)
 
   }, [genre])
 
@@ -75,7 +75,7 @@ const Books = (props) => {
           {books.map(a =>
             <tr key={a.title}>
               <td>{a.title}</td>
-              <td>{a.author}</td>
+              <td>{a.author.name}</td>
               <td>{a.published}</td>
             </tr>
           )}

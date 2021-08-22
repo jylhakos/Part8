@@ -88,3 +88,25 @@ const NewBook = (props) => {
 }
 
 export default NewBook
+
+/*
+
+mutation {
+  addBook(
+    title: "Pimeyden tango",
+    author: {
+      name: "Reijo Mäki",
+      born: 1958,
+  },
+    published: 1997,
+    genres: ["crime"]
+  ) {
+    title
+    published
+    genres
+    author {
+      name
+    }
+}
+
+*/
