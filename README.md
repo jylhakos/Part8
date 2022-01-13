@@ -287,8 +287,8 @@ A link to GraphQL specification.
 
 https://github.com/graphql/graphql-spec
 
-**Apollo playground**
+**Apollo Playground**
 
-Apollo server starts a GraphQL playground at http://localhost:4000/graphql address. 
+Apollo server starts Playground at http://localhost:4000/graphql address. 
 
 ![alt text](https://github.com/jylhakos/Part8/blob/main/playground.png?raw=true)
